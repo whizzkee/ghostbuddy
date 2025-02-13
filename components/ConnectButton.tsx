@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 interface SolanaResponse {
   publicKey: {
@@ -15,14 +15,11 @@ interface ConnectButtonProps {
 }
 
 const ConnectButton: React.FC<ConnectButtonProps> = ({ label, onConnect, walletAddress }) => {
-  const [connected, setConnected] = useState(false);
-
   const handleConnect = () => {
     if (window.solana && window.solana.isPhantom) {
       window.solana.connect({ onlyIfTrusted: false })
         .then((response: SolanaResponse) => {
           console.log('Connected with public key:', response.publicKey.toString());
-          setConnected(true);
           onConnect(response.publicKey.toString());
         })
         .catch((err: Error) => {

@@ -3,6 +3,12 @@ import { Connection, PublicKey } from '@solana/web3.js';
 
 export const connection = new Connection(HELIUS_RPC_URL);
 
+interface HeliusTokenBalance {
+  mint: string;
+  amount: string;
+  decimals: number;
+}
+
 export interface TokenBalance {
   mint: string;
   amount: string;
@@ -14,7 +20,7 @@ export interface TokenBalance {
 
 export interface WalletData {
   solBalance: number;
-  tokens: TokenBalance[];
+  tokens: TokenBalance[];  // This will always be an array, even if empty
 }
 
 interface PhantomToken {
@@ -98,7 +104,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
     
     // Transform token balances
     const tokens = data.tokens
-      .map((token: any) => {
+      .map((token: HeliusTokenBalance) => {
         // Log the mint address we're looking up
         console.log('Looking up token:', token.mint);
         const tokenInfo = tokenList.get(token.mint);
@@ -122,7 +128,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
       .filter((token: TokenBalance | null): token is TokenBalance => token !== null);
 
     // Debug logging
-    tokens.forEach(token => {
+    tokens.forEach((token: TokenBalance) => {
       console.log(`Token ${token.tokenSymbol} (${token.mint}):`, {
         rawAmount: token.amount,
         decimals: token.decimals,

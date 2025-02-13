@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <>
-      <Navbar connected={connected} walletAddress={walletAddress} onConnect={handleConnect} />
+      <Navbar walletAddress={walletAddress} onConnect={handleConnect} />
       <HeroSection connected={connected} onConnect={handleConnect} walletAddress={walletAddress} />
     </>
   );

@@ -10,7 +10,7 @@ interface WalletInfoProps {
 }
 
 const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
-  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [walletData, setWalletData] = useState<WalletData>({ solBalance: 0, tokens: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,11 +46,11 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
           {loading ? (
             <div className="animate-pulse h-6 bg-[#4c4c4e] rounded w-24"></div>
           ) : (
-            <p className="text-white text-xl">{walletData?.solBalance?.toFixed(4) ?? '0.0000'} SOL</p>
+            <p className="text-white text-xl">{walletData.solBalance.toFixed(4)} SOL</p>
           )}
         </div>
         
-        {!loading && walletData?.tokens.length > 0 && (
+        {!loading && walletData.tokens.length > 0 && (
           <div className="bg-[#3c3c3e] p-4 rounded-lg">
             <p className="text-[#b0b0b0] text-sm mb-3">Token Balances</p>
             <div className="space-y-3">
