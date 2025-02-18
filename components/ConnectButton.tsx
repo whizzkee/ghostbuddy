@@ -17,14 +17,11 @@ interface ConnectButtonProps {
 const ConnectButton: React.FC<ConnectButtonProps> = ({ label, onConnect, walletAddress }) => {
   const handleConnect = async () => {
     try {
-      if (window.solana && window.solana.isPhantom) {
-        const response: SolanaResponse = await window.solana.connect({ onlyIfTrusted: false });
-        console.log('Connected with public key:', response.publicKey.toString());
-        onConnect(response.publicKey.toString());
-      } else {
-        // If Phantom is not installed, redirect to install page
-        window.open('https://phantom.app/', '_blank');
-      }
+      if (!window.solana) return;
+      
+      const response: SolanaResponse = await window.solana.connect({ onlyIfTrusted: false });
+      console.log('Connected with public key:', response.publicKey.toString());
+      onConnect(response.publicKey.toString());
     } catch (err) {
       console.error('Connection failed:', err);
     }
