@@ -15,18 +15,29 @@ interface ConnectButtonProps {
 }
 
 const ConnectButton: React.FC<ConnectButtonProps> = ({ label, onConnect, walletAddress }) => {
-  const handleConnect = () => {
-    if (window.solana && window.solana.isPhantom) {
-      window.solana.connect({ onlyIfTrusted: false })
-        .then((response: SolanaResponse) => {
-          console.log('Connected with public key:', response.publicKey.toString());
-          onConnect(response.publicKey.toString());
-        })
-        .catch((err: Error) => {
-          console.error('Connection failed:', err);
-        });
-    } else {
-      console.error('Phantom wallet not found.');
+  const handleConnect = async () => {
+    try {
+      // Check if we're on mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // For mobile, open Phantom wallet app
+        const url = `https://phantom.app/ul/browse/${window.location.href}`;
+        window.location.href = url;
+        return;
+      }
+
+      // Desktop flow
+      if (window.solana && window.solana.isPhantom) {
+        const response: SolanaResponse = await window.solana.connect({ onlyIfTrusted: false });
+        console.log('Connected with public key:', response.publicKey.toString());
+        onConnect(response.publicKey.toString());
+      } else {
+        // If Phantom is not installed, redirect to install page
+        window.open('https://phantom.app/', '_blank');
+      }
+    } catch (err) {
+      console.error('Connection failed:', err);
     }
   };
 
