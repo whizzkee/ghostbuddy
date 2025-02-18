@@ -27,7 +27,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ connected, onConnect, walletA
   }, [connected]);
 
   return (
-    <section className="flex justify-center items-center h-[80vh] bg-[#1c1c1e]">
+    <section className="flex justify-center items-center min-h-[80vh] bg-[#1c1c1e] px-4">
       <AnimatePresence mode="wait">
         {!connected && (
           <motion.div
@@ -35,10 +35,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ connected, onConnect, walletA
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-[#2c2c2e] p-8 rounded-lg text-center shadow-lg"
+            className="bg-[#2c2c2e] p-6 sm:p-8 rounded-lg text-center shadow-lg w-full max-w-md"
           >
-            <h1 className="text-2xl text-white">Connect to Phantom</h1>
-            <p className="text-base text-[#b0b0b0] mb-5">Manage your Phantom assets in one place</p>
+            <h1 className="text-xl sm:text-2xl text-white">Connect to Phantom</h1>
+            <p className="text-sm sm:text-base text-[#b0b0b0] mb-5">Manage your Phantom assets in one place</p>
             <ConnectButton label="Connect" onConnect={onConnect} walletAddress={walletAddress} />
           </motion.div>
         )}
@@ -49,9 +49,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ connected, onConnect, walletA
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="bg-[#2c2c2e] p-8 rounded-lg text-center shadow-lg"
+            className="bg-[#2c2c2e] p-6 sm:p-8 rounded-lg text-center shadow-lg w-full max-w-md"
           >
-            <h1 className="text-2xl text-white">Welcome to GhostBuddy</h1>
+            <h1 className="text-xl sm:text-2xl text-white">Welcome to GhostBuddy</h1>
           </motion.div>
         )}
 
@@ -61,6 +61,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ connected, onConnect, walletA
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-md"
           >
             <WalletInfo walletAddress={walletAddress} />
           </motion.div>
