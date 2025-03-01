@@ -36,8 +36,8 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
     };
 
     fetchWalletData();
-    // Refresh data every 30 seconds
-    const interval = setInterval(fetchWalletData, 30000);
+    // Refresh data every 5 seconds
+    const interval = setInterval(fetchWalletData, 5000);
     return () => clearInterval(interval);
   }, [walletAddress]);
 
