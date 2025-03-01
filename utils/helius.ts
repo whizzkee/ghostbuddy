@@ -18,9 +18,41 @@ export interface TokenBalance {
   logo?: string;
 }
 
+export interface NFTData {
+  mint: string;
+  name: string;
+  symbol: string;
+  image: string;
+  collection?: string;
+  attributes?: Array<{trait_type: string; value: string}>;
+}
+
+export interface TransactionHistory {
+  signature: string;
+  timestamp: number;
+  type: string;
+  status: string;
+  amount?: number;
+  token?: string;
+}
+
+export interface DeFiPosition {
+  protocol: string;
+  type: string;  // e.g., "LP", "Stake", "Loan"
+  value: number;
+  tokenA?: string;
+  tokenB?: string;
+  apy?: number;
+}
+
 export interface WalletData {
   solBalance: number;
-  tokens: TokenBalance[];  // This will always be an array, even if empty
+  tokens: TokenBalance[];
+  nfts: NFTData[];
+  recentTransactions: TransactionHistory[];
+  defiPositions: DeFiPosition[];
+  totalPortfolioValueUSD: number;
+  lastUpdated: number;
 }
 
 interface PhantomToken {
@@ -85,63 +117,76 @@ export async function getWalletData(address: string): Promise<WalletData> {
 
     // Get token list
     const tokenList = await getPhantomTokenList();
-    console.log('Token list size:', tokenList.size);
 
-    // Get token balances using Helius API
-    const response = await fetch(`https://api.helius.xyz/v0/addresses/${address}/balances?api-key=${HELIUS_API_KEY}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch token balances: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
+    // Parallel data fetching for better performance
+    const [tokenBalances, nftData, transactions] = await Promise.all([
+      // Get token balances using Helius API
+      fetch(`https://api.helius.xyz/v0/addresses/${address}/balances?api-key=${HELIUS_API_KEY}`).then(res => res.json()),
+      // Get NFTs using Helius API
+      fetch(`https://api.helius.xyz/v0/addresses/${address}/nfts?api-key=${HELIUS_API_KEY}`).then(res => res.json()),
+      // Get recent transactions
+      fetch(`https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${HELIUS_API_KEY}`).then(res => res.json())
+    ]);
 
-    if (!data.tokens || !Array.isArray(data.tokens)) {
-      console.error('Unexpected response format from Helius API:', data);
+    // Process token balances
+    const processedTokens = tokenBalances.tokens?.map((token: HeliusTokenBalance) => {
+      const tokenInfo = tokenList.get(token.mint);
       return {
-        solBalance: solBalance / 1e9,
-        tokens: []
-      };
-    }
-    
-    // Transform token balances
-    const tokens = data.tokens
-      .map((token: HeliusTokenBalance) => {
-        // Log the mint address we're looking up
-        console.log('Looking up token:', token.mint);
-        const tokenInfo = tokenList.get(token.mint);
-        console.log('Token info found:', tokenInfo ? 'yes' : 'no');
-        
-        // Keep the raw amount as a string to preserve precision
-        const rawAmount = token.amount;
-        
-        if (rawAmount && rawAmount !== '0') {
-          return {
-            mint: token.mint,
-            amount: rawAmount,
-            decimals: token.decimals || tokenInfo?.decimals || 0,
-            tokenName: tokenInfo?.name || `Unknown Token`,
-            tokenSymbol: tokenInfo?.symbol || 'UNKNOWN',
-            logo: tokenInfo?.logoURI
-          };
-        }
-        return null;
-      })
-      .filter((token: TokenBalance | null): token is TokenBalance => token !== null);
-
-    // Debug logging
-    tokens.forEach((token: TokenBalance) => {
-      console.log(`Token ${token.tokenSymbol} (${token.mint}):`, {
-        rawAmount: token.amount,
+        mint: token.mint,
+        amount: token.amount,
         decimals: token.decimals,
-        uiAmount: Number(token.amount) / Math.pow(10, token.decimals)
-      });
-    });
+        tokenName: tokenInfo?.name || 'Unknown',
+        tokenSymbol: tokenInfo?.symbol || 'Unknown',
+        logo: tokenInfo?.logoURI
+      };
+    }) || [];
+
+    // Process NFTs
+    const processedNFTs = (nftData.nfts || []).map((nft: any) => ({
+      mint: nft.mint,
+      name: nft.name,
+      symbol: nft.symbol,
+      image: nft.image,
+      collection: nft.collection?.name,
+      attributes: nft.attributes
+    }));
+
+    // Process transactions
+    const processedTransactions = (transactions.transactions || []).map((tx: any) => ({
+      signature: tx.signature,
+      timestamp: tx.timestamp,
+      type: tx.type,
+      status: tx.status,
+      amount: tx.amount,
+      token: tx.token
+    }));
+
+    // For now, return empty DeFi positions - this will be implemented in the next phase
+    const defiPositions: DeFiPosition[] = [];
+
+    // Calculate total portfolio value (placeholder - will be implemented with price feeds)
+    const totalPortfolioValueUSD = 0; // To be implemented
 
     return {
       solBalance: solBalance / 1e9,
-      tokens
+      tokens: processedTokens,
+      nfts: processedNFTs,
+      recentTransactions: processedTransactions,
+      defiPositions,
+      totalPortfolioValueUSD,
+      lastUpdated: Date.now()
     };
+
   } catch (error) {
     console.error('Error fetching wallet data:', error);
-    throw error;
+    return {
+      solBalance: 0,
+      tokens: [],
+      nfts: [],
+      recentTransactions: [],
+      defiPositions: [],
+      totalPortfolioValueUSD: 0,
+      lastUpdated: Date.now()
+    };
   }
 }
