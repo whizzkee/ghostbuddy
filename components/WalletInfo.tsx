@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getWalletData } from '../utils/helius';
-import type { WalletData, NFTData, TransactionHistory, DeFiPosition } from '../utils/helius';
+import type { WalletData } from '../utils/helius';
+import Image from 'next/image';
 
 interface WalletInfoProps {
   walletAddress: string;
@@ -76,7 +77,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
         <div className="space-y-2">
           {walletData.tokens.map((token) => (
             <div key={token.mint} className="flex items-center space-x-2">
-              {token.logo && <img src={token.logo} alt={token.tokenSymbol} className="w-6 h-6 rounded-full" />}
+              {token.logo && <Image src={token.logo} alt={token.tokenSymbol} className="w-6 h-6 rounded-full" />}
               <span>{token.tokenSymbol}</span>
               <span className="text-gray-400">
                 {(Number(token.amount) / Math.pow(10, token.decimals)).toFixed(4)}
