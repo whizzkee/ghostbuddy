@@ -26,6 +26,26 @@ const nextConfig: NextConfig = {
         hostname: '**.ipfs.dweb.link',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.jup.ag',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.arweave.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.arweave.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.helius.xyz',
+        pathname: '/**',
       }
     ],
   },

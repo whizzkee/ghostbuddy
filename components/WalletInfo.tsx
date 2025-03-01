@@ -61,7 +61,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
   );
 
   const renderOverview = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto h-[600px] pr-2">
       <div className="bg-[#3c3c3e] p-4 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Portfolio Value</h3>
         <p className="text-2xl font-bold">${walletData.totalPortfolioValueUSD.toFixed(2)} USD</p>
@@ -77,7 +77,27 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
         <div className="space-y-2">
           {walletData.tokens.map((token) => (
             <div key={token.mint} className="flex items-center space-x-2">
-              {token.logo && <Image src={token.logo} alt={token.tokenSymbol} className="w-6 h-6 rounded-full" />}
+              {token.logo ? (
+                <div className="w-6 h-6 relative">
+                  <Image 
+                    src={token.logo} 
+                    alt={token.tokenSymbol} 
+                    width={24} 
+                    height={24} 
+                    className="rounded-full"
+                    onError={(e) => {
+                      // Replace with token symbol on error
+                      const target = e.target as HTMLElement;
+                      target.style.display = 'none';
+                      target.parentElement!.innerHTML = `<div class="w-6 h-6 rounded-full bg-[#4c4c4e] flex items-center justify-center text-xs">${token.tokenSymbol.slice(0, 2).toUpperCase()}</div>`;
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-[#4c4c4e] flex items-center justify-center text-xs">
+                  {token.tokenSymbol.slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <span>{token.tokenSymbol}</span>
               <span className="text-gray-400">
                 {(Number(token.amount) / Math.pow(10, token.decimals)).toFixed(4)}
@@ -90,7 +110,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
   );
 
   const renderNFTs = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto h-[600px] pr-2">
       {walletData.nfts.map((nft) => (
         <div key={nft.mint} className="bg-[#3c3c3e] p-4 rounded-lg">
           <img src={nft.image} alt={nft.name} className="w-full h-48 object-cover rounded-lg mb-2" />
@@ -102,7 +122,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
   );
 
   const renderTransactions = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-y-auto h-[600px] pr-2">
       {walletData.recentTransactions.map((tx) => (
         <div key={tx.signature} className="bg-[#3c3c3e] p-4 rounded-lg">
           <div className="flex justify-between items-center">
@@ -132,7 +152,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
   );
 
   const renderDeFi = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-y-auto h-[600px] pr-2">
       {walletData.defiPositions.map((position, index) => (
         <div key={index} className="bg-[#3c3c3e] p-4 rounded-lg">
           <h3 className="font-semibold">{position.protocol}</h3>
@@ -157,7 +177,7 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#2c2c2e] p-4 sm:p-8 rounded-lg shadow-lg w-full max-w-4xl mx-auto"
+      className="bg-[#2c2c2e] p-4 sm:p-8 rounded-lg shadow-lg w-full max-w-4xl mx-auto min-h-[700px] flex flex-col"
     >
       <div className="flex space-x-4 mb-6">
         <TabButton name="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
@@ -166,10 +186,14 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
         <TabButton name="DeFi" active={activeTab === 'defi'} onClick={() => setActiveTab('defi')} />
       </div>
 
-      {activeTab === 'overview' && renderOverview()}
-      {activeTab === 'nfts' && renderNFTs()}
-      {activeTab === 'transactions' && renderTransactions()}
-      {activeTab === 'defi' && renderDeFi()}
+      <div className="flex-1 relative">
+        <div className="absolute inset-0">
+          {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'nfts' && renderNFTs()}
+          {activeTab === 'transactions' && renderTransactions()}
+          {activeTab === 'defi' && renderDeFi()}
+        </div>
+      </div>
 
       <div className="text-xs text-gray-500 mt-4 text-right">
         Last updated: {new Date(walletData.lastUpdated).toLocaleString()}
