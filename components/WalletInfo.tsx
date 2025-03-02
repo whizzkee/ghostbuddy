@@ -21,30 +21,61 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
     lastUpdated: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview'|'nfts'|'transactions'|'defi'>('overview');
 
   useEffect(() => {
+    let mounted = true;
+    
     const fetchWalletData = async () => {
       try {
         const data = await getWalletData(walletAddress);
-        setWalletData(data);
+        if (mounted) {
+          // Sort tokens by symbol for consistent ordering
+          data.tokens.sort((a, b) => {
+            if (!a.tokenSymbol || !b.tokenSymbol) return 0;
+            return a.tokenSymbol.localeCompare(b.tokenSymbol);
+          });
+          setWalletData(data);
+          setError(null);
+        }
       } catch (error) {
         console.error('Error fetching wallet data:', error);
+        if (mounted) {
+          setError('Failed to fetch wallet data');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
+    setLoading(true);
     fetchWalletData();
+    
     // Refresh data every 5 seconds
     const interval = setInterval(fetchWalletData, 5000);
-    return () => clearInterval(interval);
+    
+    // Cleanup function to prevent memory leaks and state updates on unmounted component
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, [walletAddress]);
 
-  if (loading) {
+  if (loading && !walletData.tokens.length) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64 text-red-500">
+        {error}
       </div>
     );
   }
@@ -73,9 +104,28 @@ const WalletInfo: React.FC<WalletInfoProps> = ({ walletAddress }) => {
       </div>
 
       <div className="bg-[#3c3c3e] p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-2">Tokens ({walletData.tokens.length})</h3>
+        <h3 className="text-lg font-semibold mb-2">Tokens ({walletData.tokens.filter(token => 
+          token.tokenSymbol && 
+          token.tokenSymbol !== 'UNKNOWN' && 
+          token.tokenSymbol !== 'Unknown' && 
+          !token.tokenSymbol.startsWith('???') &&
+          token.tokenName &&
+          token.tokenName !== 'UNKNOWN' &&
+          token.tokenName !== 'Unknown'
+        ).length})</h3>
         <div className="space-y-2">
-          {walletData.tokens.map((token) => (
+          {walletData.tokens
+            .filter(token => 
+              token.tokenSymbol && 
+              token.tokenSymbol !== 'UNKNOWN' && 
+              token.tokenSymbol !== 'Unknown' && 
+              !token.tokenSymbol.startsWith('???') &&
+              token.tokenName &&
+              token.tokenName !== 'UNKNOWN' &&
+              token.tokenName !== 'Unknown'
+            )
+            .sort((a, b) => a.tokenSymbol.localeCompare(b.tokenSymbol)) // Ensure consistent sorting even after filtering
+            .map((token) => (
             <div key={token.mint} className="flex items-center space-x-2">
               {token.logo ? (
                 <div className="w-6 h-6 relative">
